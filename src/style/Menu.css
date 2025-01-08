@@ -1,0 +1,116 @@
+/* Estilos generales del menú */
+.menu-container {
+  display: flex;
+  align-items: center;
+  background-color: #007BFF;
+  color: white;
+  padding: 10px;
+}
+
+.menu-logo {
+  height: 50px;
+  margin-right: 20px;
+}
+
+.menu-list {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  margin-left: auto; /* Mueve los elementos del menú a la derecha */
+}
+
+.menu-list > li {
+  position: relative; /* Necesario para posicionar submenús */
+}
+
+.menu-list a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.menu-list a:hover {
+  text-decoration: underline;
+}
+
+/* Submenús de primer nivel */
+.submenu {
+  list-style: none;
+  position: absolute;
+  background-color: white;
+  color: black;
+  padding: 10px;
+  display: none; /* Oculto por defecto */
+  border: 1px solid #ccc;
+  z-index: 1000;
+  top: 100%; /* Justo debajo del menú principal */
+  left: 0;
+}
+
+.menu-list > li:hover > .submenu {
+  display: block; /* Mostrar al pasar el mouse */
+}
+
+/* Submenús de segundo nivel (anidados) */
+.submenu li {
+  position: relative; /* Necesario para submenús adicionales */
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.submenu .submenu {
+  top: 0;
+  left: 100%; /* Posicionar a la derecha del elemento padre */
+  display: none; /* Oculto por defecto */
+}
+
+.submenu li:hover > .submenu {
+  display: block; /* Mostrar el submenú anidado */
+}
+
+/* Enlaces dentro de submenús */
+.submenu a {
+  color: black;
+  text-decoration: none;
+}
+
+.submenu a:hover {
+  color: #007BFF;
+}
+
+/* --- Responsividad --- */
+
+/* Menú hamburguesa oculto por defecto */
+.hamburger {
+  display: none;
+  font-size: 30px;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: auto; /* Alineado al lado derecho */
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 768px) {
+  .menu-list {
+    display: none; /* Ocultar menú principal */
+    flex-direction: column; /* Menú en columna */
+    background-color: #007BFF; /* Fondo azul */
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 200px; /* Ancho fijo */
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+
+  .menu-list.active {
+    display: flex; /* Mostrar menú al activarse */
+  }
+
+  .hamburger {
+    display: block; /* Mostrar ícono hamburguesa */
+  }
+}

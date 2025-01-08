@@ -1,0 +1,104 @@
+.titulo-form{
+  text-align: center;
+}
+
+/* Estilos generales del formulario */
+.principal-form {
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+  }
+  
+
+  /* Inputs del formulario */
+  .categoria-form input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+  
+  /* Input focus */
+  .categoria-form input:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* Botones */
+  .categoria-form button {
+    padding: 10px 20px;
+    margin-top: 20px;
+    margin-left : 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .categoria-form button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .categoria-form button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .categoria-form button[type="button"] {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .categoria-form button[type="button"]:hover {
+    background-color: #5a6268;
+  }
+  
+  /* Botón de eliminar en rojo */
+  .categoria-form button[type="button"]:last-child {
+    background-color: #dc3545;
+  }
+  
+  .categoria-form button[type="button"]:last-child:hover {
+    background-color: #c82333;
+  }
+  
+  /* Responsive: Formularios más pequeños en pantallas pequeñas */
+  @media (max-width: 576px) {
+    .categoria-form {
+      padding: 15px;
+      display: block;
+    }
+  
+    .categoria-form button {
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+  /* Estilos para cada grupo de input */
+  .grupo-item {
+    margin-bottom: 20px;
+  }
+  
+  /* Etiquetas (label) del formulario */
+  .categoria-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+
+  }
+  
