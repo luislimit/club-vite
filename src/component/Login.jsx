@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useContext } from "react";
-import { UsuarioContext } from "../context/UsuarioContext";
+import { DBContext } from "../context/DBContext";
 import Home from "./Home";
 import { useTranslation } from "react-i18next";
 
@@ -9,11 +9,11 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const usuarioCtx = useContext(UsuarioContext);
+  const dBCtx = useContext(DBContext);
 
   useEffect(() => {
-    setError(usuarioCtx.error);
-  }, [usuarioCtx.error]);
+    setError(dBCtx.error);
+  }, [dBCtx.error]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,12 +22,12 @@ export default function Login() {
       setError("Por favor, completa todos los campos.");
       return;
     }
-    usuarioCtx.iniciarSesion({ username: username, password: password });
+    dBCtx.iniciarSesion({ username: username, password: password });
   };
 
   return (
     <>
-      {usuarioCtx.usuario ? (
+      {dBCtx.usuario ? (
         <Home />
       ) : (
         <div style={styles.container}>

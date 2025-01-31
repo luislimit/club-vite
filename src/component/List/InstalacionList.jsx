@@ -23,9 +23,9 @@ function InstalacionList() {
               key={instalacion.id}
               onClick={() => dBCtx.setActual(instalacion)}
             >
-              <td>{instalacion.nombre}</td>
-              <td>{instalacion.direccion}</td>
-              <td>{instalacion.codPostal}</td>
+              <td>{instalacion?.nombre}</td>
+              <td>{instalacion?.direccion}</td>
+              <td>{instalacion?.codPostal}</td>
             </tr>
           ))}
         </tbody>

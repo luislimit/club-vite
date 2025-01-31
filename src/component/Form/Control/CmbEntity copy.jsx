@@ -4,29 +4,37 @@ import { DBContext } from "../../../context/DBContext";
 import { useTranslation } from "react-i18next";
 import { fnEntidadNombre } from "../../../utils/Funciones.js";
 
-function CmbEntity({ urlEntidad, nombreEntidad, value, onChange, fnFilter }) {
+function CmbEntity({
+  nombreEntidad,
+  value = "",
+  onChange,
+  listaIdDisabled = [],
+}) {
   const { t } = useTranslation();
   const [listaEntity, setListaEntity] = useState([]);
   const [listaFiltered, setListaFiltered] = useState([]);
   const dBCxt = useContext(DBContext);
-  const urlConsulta = urlEntidad || nombreEntidad;
 
   useEffect(() => {
-    dBCxt.consultaEntidad(urlConsulta, setListaEntity);
-  }, [urlConsulta]);
+    dBCxt.consultaEntidad(nombreEntidad, setListaEntity);
+  }, [nombreEntidad]);
 
   useEffect(() => {
-    if (fnFilter) {
-      setListaFiltered(fnFilter(listaEntity));
+    if (listaIdDisabled.length > 0) {
+      setListaFiltered(
+        listaEntity.filter(
+          (e) => e.id == value || !listaIdDisabled.find((d) => d === e?.id)
+        )
+      );
     } else {
       setListaFiltered(listaEntity);
     }
-  }, [listaEntity, fnFilter, value]);
+  }, [listaEntity, listaIdDisabled, value]);
 
-  return nombreEntidad ? (
+  return (
     <select
       name={nombreEntidad}
-      value={value || ""}
+      value={value ? value : ""}
       onChange={onChange}
       style={{
         padding: "8px",
@@ -47,8 +55,6 @@ function CmbEntity({ urlEntidad, nombreEntidad, value, onChange, fnFilter }) {
         </option>
       ))}
     </select>
-  ) : (
-    ""
   );
 }
 

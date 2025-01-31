@@ -1,15 +1,13 @@
 import { useContext } from "react";
-import { UsuarioContext } from "../context/UsuarioContext";
-import Home from './Home'
+import { DBContext } from "../context/DBContext";
+import Home from "./Home";
 
 function Logout() {
-  const usuarioCtx = useContext(UsuarioContext);
+  const dBCtx = useContext(DBContext);
 
-  usuarioCtx.cerrarSesion();
+  dBCtx.cerrarSesion();
 
-  return (
-    <Home/>
-  );
+  return <Home />;
 }
 
 export default Logout;

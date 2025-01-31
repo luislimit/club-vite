@@ -1,112 +1,124 @@
 import React, { useContext, useEffect, useState } from "react";
 import { DBContext } from "../context/DBContext";
-import "../style/GeneralForm.css";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useLocation } from "react-router-dom";
+import "../style/GeneralForm.css";
+import { fnEntidadNombre } from "../utils/Funciones.js";
 
 function GeneralEntity({
   ComponenteForm,
   ComponenteLista,
   tituloEntidad,
-  nombreEntidad,
-  children,
+  childEntities = [],
 }) {
   const { t } = useTranslation();
 
+  const location = useLocation();
+  const currentUrl = location.pathname.substring(1);
+  const [urlDML, setUrlDML] = useState(currentUrl);
+  const [entityParent, setEntityParent] = useState("");
+  const [objParent, setObjParent] = useState("");
+  const [datosCargados, setDatosCargados] = useState(false);
+
+  const navigate = useNavigate();
   const dBCtx = useContext(DBContext);
-  const [parentData, setParentData] = useState(null);
-  const [currentEntity, setCurrentEntity] = useState({
-    ComponenteForm: ComponenteForm,
-    ComponenteLista: ComponenteLista,
-    tituloEntidad: tituloEntidad,
-    nombreEntidad: nombreEntidad,
-    actual: null,
-  });
 
-  const entityChildren = children ? React.Children.toArray(children) : [];
-
+  // Cargamos los datos iniciales del padre, si viene de una URL padre
   useEffect(() => {
-    dBCtx.consultar(currentEntity.nombreEntidad);
-  }, []);
+    dBCtx.setActual(null);
+    const splitUrl = currentUrl.split("/");
+    if (splitUrl.length === 3) {
+      setUrlDML(splitUrl[0]);
+      setEntityParent(splitUrl[1]);
+      dBCtx.consultaEntidad(`${splitUrl[1]}/${splitUrl[2]}`, setObjParent);
+    } else {
+      setUrlDML(currentUrl);
+    }
+  }, [currentUrl]);
 
+  // Consultamos los datos de la entidad actual
+  useEffect(() => {
+    if (!dBCtx.actual) {
+      dBCtx.consultar(currentUrl);
+      //Comprobamos si el objeto Padre y hay informacion, implica que viene del hijo
+      const datosPadre = location.state?.currentObject;
+      if (!datosCargados && childEntities.length > 0 && datosPadre) {
+        dBCtx.setActual(datosPadre);
+        //
+        setDatosCargados(true);
+      }
+    }
+  }, [currentUrl, dBCtx.actual, datosCargados]);
+
+  // Al presionar el botón descartar cambios
   const cancelAction = (e) => {
     e.preventDefault();
     dBCtx.setActual(null);
   };
 
-  const showParent = () => {
-    console.log("showParent -> parentData", parentData);
-    if (parentData) {
-      setCurrentEntity(parentData);
-      setParentData(null);
-      dBCtx.consultar(parentData.nombreEntidad);
-      dBCtx.setActual(parentData.actual);
+  // Navegar de regreso al padre, si existiera
+  const goBackToParent = () => {
+    if (entityParent && objParent) {
+      navigate(`/${entityParent}`, { state: { currentObject: objParent } });
     }
   };
 
-  const showChild = (index) => {
-    const selectedChild = entityChildren[index];
-    if (React.isValidElement(selectedChild)) {
-      const childEntityName = `${dBCtx.entidad}/${dBCtx.actual.id}/${selectedChild.props.nombreEntidad}`;
+  const goToChild = (id) => {
+    navigate(`/${childEntities[id]}/${currentUrl}/${dBCtx.actual.id}`);
+  };
 
-      setParentData({ ...currentEntity, actual: dBCtx.actual });
-
-      setCurrentEntity({
-        ComponenteForm: selectedChild.props.ComponenteForm,
-        ComponenteLista: selectedChild.props.ComponenteLista,
-        tituloEntidad: selectedChild.props.tituloEntidad,
-        nombreEntidad: childEntityName,
-        actual: null,
-      });
-
-      dBCtx.consultar(childEntityName);
-      dBCtx.setActual(null);
+  const guardar = () => {
+    if (objParent && !dBCtx.actual?.id) {
+      const nuevo = {
+        ...dBCtx.actual,
+        [entityParent]: { id: objParent.id },
+      };
+      dBCtx.guardar(urlDML, nuevo);
+    } else {
+      dBCtx.guardar(urlDML, dBCtx.actual);
     }
   };
 
-  const {
-    ComponenteForm: CurrentForm,
-    ComponenteLista: CurrentList,
-    tituloEntidad: currentTitle,
-  } = currentEntity;
+  const borrar = () => {
+    dBCtx.borrar(urlDML, dBCtx.actual.id);
+  };
 
   return (
     <div>
-      <h1>{currentTitle}</h1>
-      {parentData?.actual?.nombre && <h2>{parentData.actual.nombre}</h2>}
+      <h1>{t(tituloEntidad)}</h1>
+      {childEntities.length === 0 && objParent?.id > 0 ? (
+        <a onClick={goBackToParent}>
+          {fnEntidadNombre(entityParent, objParent)}
+        </a>
+      ) : (
+        ""
+      )}
       <form className="principal-form">
-        <CurrentForm valorInicial={dBCtx.actual} />
+        <ComponenteForm valorInicial={dBCtx.actual} objParent={objParent} />
         <div>
           <button type="button" onClick={cancelAction}>
             {t("Descartar")}
           </button>
 
-          <button type="button" onClick={dBCtx.guardarActual}>
+          <button type="button" onClick={guardar}>
             {dBCtx.actual?.id ? t("Actualizar") : t("Crear")}
           </button>
 
-          {dBCtx.actual && (
-            <button type="button" onClick={dBCtx.borrarActual}>
+          {dBCtx.actual?.id && (
+            <button type="button" onClick={borrar}>
               {t("Eliminar")}
             </button>
           )}
-          {parentData && (
-            <button type="button" onClick={() => showParent()}>
-              {t("Volver")}
-            </button>
-          )}
-          {!parentData &&
-            dBCtx.actual?.id &&
-            entityChildren.map((child, index) =>
-              React.isValidElement(child) ? (
-                <button
-                  key={child.props.nombreEntidad || index}
-                  type="button"
-                  onClick={() => showChild(index)}
-                >
-                  {child.props.tituloEntidad} {"=>"}
-                </button>
-              ) : null
-            )}
+          {dBCtx.actual?.id &&
+            childEntities.map((child, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => goToChild(index)}
+              >
+                {child + "=>"}
+              </button>
+            ))}
         </div>
       </form>
       {dBCtx.loading ? (
@@ -114,7 +126,7 @@ function GeneralEntity({
       ) : dBCtx.error ? (
         <p>{dBCtx.error}</p>
       ) : dBCtx.lista.length > 0 ? (
-        <CurrentList />
+        <ComponenteLista />
       ) : (
         <h5>{t("NoDatos")}</h5>
       )}

@@ -1,7 +1,5 @@
-import React, { createContext, useState, useCallback } from "react";
+import React, { useEffect, createContext, useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import { useContext } from "react";
-import { UsuarioContext } from "./UsuarioContext";
 
 export const DBContext = createContext({
   lista: [],
@@ -17,24 +15,103 @@ export function DBContextProvider({ children }) {
   const [actual, setActual] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [entidad, setEntidad] = useState(null);
-  const usuarioCtx = useContext(UsuarioContext);
+  const [usuario, setUsuario] = useState(null); // Inicializar como null
 
-  // El fichero .env existe al mismo nivel que package.json
-  const apiURL = import.meta.env.VITE_API_URL || "http://localhost:4001/";
+  const apiURL = import.meta.env.VITE_API_URL;
+  const clubURL = apiURL + "club/";
 
-  const consultar = useCallback(
-    async (nombreEntidad) => {
-      setLoading(true);
-      setError(null);
-      setEntidad(nombreEntidad);
-      const urlServicio = apiURL + nombreEntidad;
+  const iniciarSesion = useCallback(
+    async (credenciales) => {
       try {
-        const respuesta = await fetch(urlServicio, {
+        const authURL = apiURL + "auth/login";
+        setError(null); // Limpiar errores previos
+        const respuesta = await fetch(authURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credenciales),
+        });
+
+        if (!respuesta.ok) {
+          throw new Error(`HTTP ${respuesta.status}: ${respuesta.statusText}`);
+        }
+
+        const persona = await respuesta.json();
+        if (!persona.nombre) {
+          throw new Error("Datos incorrectos");
+        }
+        console.log("iniciarSecion", persona);
+        setUsuario(persona);
+        localStorage.setItem("usuario", JSON.stringify(persona)); // Guardar usuario en localStorage
+        return true;
+      } catch (error) {
+        setError("Error al iniciar sesión");
+        console.log(
+          `UsuarioContext.iniciarSesion ${authURL}`,
+          credenciales,
+          error
+        );
+        return false;
+      }
+    },
+    [apiURL]
+  );
+
+  const cerrarSesion = () => {
+    setUsuario(null);
+    localStorage.removeItem("usuario"); // Limpiar del almacenamiento
+  };
+
+  useEffect(() => {
+    // Recuperar usuario del almacenamiento al cargar
+    const storedUser = localStorage.getItem("usuario");
+    if (storedUser) {
+      setUsuario(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const fnOnError = (msg) => {
+    alert(msg);
+  };
+
+  const consultaEntidad = useCallback(
+    async (urlEntidad, setListaEntity) => {
+      const actionURL = clubURL + urlEntidad;
+      console.log(`DBContext.consultaEntidad ${actionURL}`);
+      try {
+        const respuesta = await fetch(actionURL, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${usuarioCtx.usuario?.jwtToken}`,
+            Authorization: `Bearer ${usuario?.jwtToken}`,
+          },
+        });
+
+        if (!respuesta.ok) {
+          throw new Error(`HTTP ${respuesta.status}: ${respuesta.statusText}`);
+        }
+        const data = await respuesta.json();
+        setListaEntity(data);
+        console.log(`consultaEntidad ${urlEntidad}`, setListaEntity, data);
+      } catch (error) {
+        console.log(`consultaEntidad ${actionURL}`, error);
+        fnOnError(error);
+      }
+    },
+    [clubURL, usuario?.jwtToken]
+  );
+
+  const consultar = useCallback(
+    async (nombreEntidad) => {
+      const actionURL = clubURL + nombreEntidad;
+      console.log(`DBContext.consultar ${actionURL}`);
+      setLoading(true);
+      setError(null);
+      try {
+        const respuesta = await fetch(actionURL, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${usuario?.jwtToken}`,
           },
         });
 
@@ -45,87 +122,58 @@ export function DBContextProvider({ children }) {
         setLista(data);
       } catch (error) {
         setError(`Error al cargar los datos: ${error.message}`);
-        console.log(`DBContext.consultar ${urlServicio}`, error);
+        console.log(`DBContext.consultar ${actionURL}`, error);
       } finally {
         setLoading(false);
       }
     },
-    [setLoading, setError]
+    [clubURL, usuario?.jwtToken, setLoading, setError]
   );
 
-  const guardar = async (objeto) => {
-    setLoading(true);
-    const urlServicio =
-      apiURL + entidad + (objeto.id != null ? "/" + objeto.id : "");
-    const method = objeto.id != null ? "PUT" : "POST";
+  const guardar = async (entidadDML, objeto) => {
+    const actionURL =
+      clubURL + entidadDML + (objeto?.id ? "/" + objeto.id : "");
+    const method = objeto?.id ? "PUT" : "POST";
+    console.log("AL GUARDAR => " + JSON.stringify(objeto));
     try {
-      const respuesta = await fetch(urlServicio, {
+      const respuesta = await fetch(actionURL, {
         method: method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${usuarioCtx.usuario?.jwtToken}`,
+          Authorization: `Bearer ${usuario?.jwtToken}`,
         },
         body: JSON.stringify(objeto),
       });
-
       if (!respuesta.ok) {
         //throw new Error(`HTTP ${respuesta.status}: ${respuesta.statusText}`);
         // Intentar leer el JSON del cuerpo
         const errorData = await respuesta.json();
-        throw new Error(errorData?.descripcion);
+        throw new Error("Respuesta NOT OK =>" + errorData?.descripcion);
       }
-
-      await consultar(entidad);
       setActual(null);
-      return true;
     } catch (error) {
-      setError(`Error al guardar: ${error.message}`);
-      console.log(`DBContext.guardar ${urlServicio}`, error);
-      return false;
-    } finally {
-      setLoading(false);
+      console.log(`DBContext.guardar ${actionURL}`, error);
+      fnOnError(error);
     }
   };
 
-  const borrar = async (id) => {
-    const urlServicio = apiURL + entidad;
-    setLoading(true);
+  const borrar = async (entidadDML, id) => {
+    const actionURL = clubURL + entidadDML + "/" + id;
     try {
-      const respuesta = await fetch(`${urlServicio}/${id}`, {
+      const respuesta = await fetch(actionURL, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${usuarioCtx.usuario?.jwtToken}`,
+          Authorization: `Bearer ${usuario?.jwtToken}`,
         },
       });
-
       if (!respuesta.ok) {
         throw new Error(`HTTP ${respuesta.status}: ${respuesta.statusText}`);
       }
-
-      await consultar(entidad);
       setActual(null);
-      return true;
     } catch (error) {
-      setError(`Error al borrar: ${error.message}`);
-      console.log(`DBContext.borrar ${urlServicio}/${id}`, error);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const guardarActual = () => {
-    if (actual) {
-      console.log("guardar actual", actual, entidad);
-      guardar(actual);
-    }
-  };
-
-  const borrarActual = () => {
-    if (actual) {
-      console.log("borrar actual", actual, entidad);
-      borrar(actual.id);
+      fnOnError(error);
+      console.log(`DBContext.borrar ${actionURL}`, error);
     }
   };
 
@@ -146,8 +194,7 @@ export function DBContextProvider({ children }) {
         newValue = { id: value };
       }
     }
-
-    console.log("DBContextProvider.fnOnChange", type, newName, newValue);
+    //console.log("DBContextProvider.fnOnChange", type, newName, newValue);
     // Actualizar el estado
     setActual({
       ...actual,
@@ -156,18 +203,19 @@ export function DBContextProvider({ children }) {
   };
 
   const contextValue = {
-    entidad,
+    usuario,
+    iniciarSesion,
+    cerrarSesion,
     lista,
-    actual,
     error,
     loading,
+    actual,
+    setActual,
     consultar,
     guardar,
     borrar,
-    setActual,
-    guardarActual,
-    borrarActual,
     fnOnChange,
+    consultaEntidad,
   };
 
   return (

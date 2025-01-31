@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { DBContext } from "../../context/DBContext";
 import { useTranslation } from "react-i18next";
 
-function PersonaRoleList() {
+function TipoNombre() {
   const { t } = useTranslation();
   const dBCtx = useContext(DBContext);
 
@@ -12,22 +12,25 @@ function PersonaRoleList() {
       <table border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>{t("Roles")}</th>
+            <th>{t("Nombre")}</th>
           </tr>
         </thead>
         <tbody>
-          {dBCtx.lista.map((personaRole) => (
-            <tr
-              key={personaRole.id}
-              onClick={() => dBCtx.setActual(personaRole)}
-            >
-              <td>{personaRole.role.nombre}</td>
-            </tr>
-          ))}
+          {dBCtx.lista.map((objeto) => {
+            const tipoNombre = objeto;
+            return (
+              <tr
+                key={tipoNombre.id}
+                onClick={() => dBCtx.setActual(tipoNombre)}
+              >
+                <td>{tipoNombre.nombre}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
 }
 
-export default PersonaRoleList;
+export default TipoNombre;

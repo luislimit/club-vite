@@ -11,16 +11,20 @@ function PistaList() {
       <table border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>{t('Nombre')}</th>
+            <th>{t("Nombre")}</th>
+            <th>{t("Mini")}</th>
+            <th>{t("Normal")}</th>
+            <th>{t("Exterior")}</th>
           </tr>
         </thead>
         <tbody>
           {dBCtx.lista.map((pista) => (
-            <tr key={pista.id}
-            onClick={() => dBCtx.setActual(pista)}
-             >
+            <tr key={pista.id} onClick={() => dBCtx.setActual(pista)}>
               <td>{pista.nombre}</td>
-          </tr>
+              <td>{pista.snMini}</td>
+              <td>{pista.snNormal}</td>
+              <td>{pista.snExterior}</td>
+            </tr>
           ))}
         </tbody>
       </table>

@@ -13,20 +13,19 @@ function RoleList() {
         <thead>
           <tr>
             <th>{t("Nombre")}</th>
-            <th>{t("Equipo")}</th>
-            <th>{t("snVinculado")}</th>
-            <th>{t("snLectura")}</th>
+            <th>{t("tipoRole")}</th>
           </tr>
         </thead>
         <tbody>
-          {dBCtx.lista.map((role) => (
-            <tr key={role.id} onClick={() => dBCtx.setActual(role)}>
-              <td>{role.nombre}</td>
-              <td>{role.snEquipo}</td>
-              <td>{role.snVinculado}</td>
-              <td>{role.snLectura}</td>
-            </tr>
-          ))}
+          {dBCtx.lista.map((objeto) => {
+            const role = objeto.role ? objeto.role : objeto;
+            return (
+              <tr key={role.id} onClick={() => dBCtx.setActual(role)}>
+                <td>{role?.nombre}</td>
+                <td>{role?.tipoRole?.nombre}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

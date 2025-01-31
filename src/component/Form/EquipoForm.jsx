@@ -3,7 +3,7 @@ import { DBContext } from "../../context/DBContext";
 import { useTranslation } from "react-i18next";
 import CmbEntity from "./Control/CmbEntity";
 
-function RoleForm() {
+function EquipoForm() {
   const { t } = useTranslation();
 
   const dBCtx = useContext(DBContext);
@@ -11,7 +11,8 @@ function RoleForm() {
   const valorVacio = {
     id: "",
     nombre: "",
-    tipoRole: { id: "", nombre: "" },
+    categoria: { id: "", nombre: "" },
+    seccion: { id: "", nombre: "" },
   };
 
   const valorInicial = dBCtx.actual || valorVacio;
@@ -30,12 +31,18 @@ function RoleForm() {
       </div>
 
       <CmbEntity
-        nombreEntidad="tipoRole"
-        value={valorInicial?.tipoRole?.id}
+        nombreEntidad="categoria"
+        value={valorInicial?.categoria?.id}
+        onChange={dBCtx.fnOnChange}
+      />
+
+      <CmbEntity
+        nombreEntidad="seccion"
+        value={valorInicial?.seccion?.id}
         onChange={dBCtx.fnOnChange}
       />
     </>
   );
 }
 
-export default RoleForm;
+export default EquipoForm;

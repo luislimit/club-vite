@@ -2,16 +2,9 @@ import { useContext } from "react";
 import { DBContext } from "../../context/DBContext";
 import { useTranslation } from "react-i18next";
 
-function TipoEventoForm() {
+function TipoNombreForm() {
   const { t } = useTranslation();
   const dBCtx = useContext(DBContext);
-
-  const valorVacio = {
-    id: "",
-    nombre: "",
-  };
-
-  const valorInicial = dBCtx.actual || valorVacio;
 
   return (
     <>
@@ -20,7 +13,7 @@ function TipoEventoForm() {
         <input
           type="text"
           name="nombre"
-          value={valorInicial.nombre}
+          value={dBCtx?.actual?.nombre ?? ""}
           onChange={dBCtx.fnOnChange}
           placeholder={t("Nombre")}
         />
@@ -29,4 +22,4 @@ function TipoEventoForm() {
   );
 }
 
-export default TipoEventoForm;
+export default TipoNombreForm;

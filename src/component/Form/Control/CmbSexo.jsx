@@ -5,8 +5,8 @@ function CmbSexo({ value, onChange }) {
 
   return (
     <div className="grupo-item">
-      <label htmlFor="sexo">{t("Sexo")}:</label>
-      <select id="sexo" name="sexo" value={value} onChange={onChange}>
+      <label htmlFor="_sexo">{t("Sexo")}:</label>
+      <select id="_sexo" name="_sexo" value={value} onChange={onChange}>
         <option value="F">{t("Femenino")}</option>
         <option value="M">{t("Masculino")}</option>
       </select>
